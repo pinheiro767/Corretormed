@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corretor OCR - Simulado 1</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef2f7;
+      margin: 0;
+      padding: 16px;
+      color: #222;
+    }
+
+    .app {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 18px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.12);
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #1f4e79;
+    }
+
+    video, canvas, img {
+      width: 100%;
+      border-radius: 14px;
+      margin-top: 10px;
+      border: 2px solid #ddd;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      background: #1f4e79;
+      color: white;
+    }
+
+    button:active {
+      transform: scale(.98);
+    }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      margin-top: 10px;
+      font-size: 15px;
+      border-radius: 12px;
+      padding: 10px;
+      border: 1px solid #aaa;
+    }
+
+    .resultado {
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 12px;
+      margin-top: 15px;
+      border: 1px solid #ddd;
+    }
+
+    .certo {
+      color: green;
+      font-weight: bold;
+    }
+
+    .errado {
+      color: red;
+      font-weight: bold;
+    }
+
+    .nota {
+      font-size: 24px;
+      text-align: center;
+      font-weight: bold;
+      color: #1f4e79;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #aaa;
+      margin-top: 8px;
+    }
+
+    .oculto {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <h1>Corretor Inteligente</h1>
+    <h2>Simulado 1 — Anatomia</h2>
+
+    <p><strong>Orientação:</strong> peça para o aluno escrever as respostas numeradas, uma por linha:</p>
+    <p>1. Semiespinal<br>2. Levantador das costelas<br>3. Intersecções tendíneas...</p>
+
+    <input id="nomeAluno" placeholder="Nome do aluno">
+
+    <button onclick="abrirCamera()">Abrir câmera</button>
+    <video id="video" autoplay playsinline></video>
+
+    <button onclick="capturarImagem()">Fotografar prova</button>
+    <canvas id="canvas" class="oculto"></canvas>
+
+    <button onclick="fazerOCR()">Ler prova com OCR</button>
+
+    <h2>Texto reconhecido</h2>
+    <textarea id="textoOCR" placeholder="O texto lido pela câmera aparecerá aqui. Você pode corrigir manualmente antes de calcular."></textarea>
+
+    <button onclick="corrigirProva()">Corrigir prova</button>
+
+    <div id="resultado" class="resultado"></div>
+
+    <hr>
+
+    <h2>Área da professora</h2>
+    <input type="password" id="senha" placeholder="Senha para ver gabarito">
+    <button onclick="mostrarGabarito()">Mostrar gabarito</button>
+
+    <div id="gabarito" class="resultado oculto"></div>
+  </div>
+
+  <script>
+    const gabarito = [
+      "semiespinal",
+      "levantador das costelas",
+      "interseccoes tendineas",
+      "linha alba",
+      "ligamento amarelo",
+      "ligamento longitudinal anterior",
+      "adutor curto",
+      "musculo coracobraquial",
+      "musculo romboide maior",
+      "musculo trapezio porcao ascendente",
+      "articulacao acromio clavicular",
+      "ligamento transverso do umero",
+      "musculo piriforme",
+      "cabeca curta do biceps braquial",
+      "ligamento conoide",
+      "ligamento transverso do joelho",
+      "musculo flexor radial do carpo",
+      "musculo flexor curto do dedo minimo",
+      "musculo latissimo do dorso",
+      "musculo serratil posterior inferior"
+    ];
+
+    function normalizar(texto) {
+      return texto
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[.,;:()\-_/]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    async function abrirCamera() {
+      const video = document.getElementById("video");
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+          audio: false
+        });
+
+        video.srcObject = stream;
+      } catch (erro) {
+        alert("Não foi possível abrir a câmera. Verifique a permissão do navegador.");
+      }
+    }
+
+    function capturarImagem() {
+      const video = document.getElementById("video");
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.classList.remove("oculto");
+    }
+
+    async function fazerOCR() {
+      const canvas = document.getElementById("canvas");
+      const textoOCR = document.getElementById("textoOCR");
+
+      if (canvas.width === 0) {
+        alert("Fotografe a prova primeiro.");
+        return;
+      }
+
+      textoOCR.value = "Lendo imagem... aguarde.";
+
+      const resultado = await Tesseract.recognize(
+        canvas,
+        "por",
+        {
+          logger: m => {
+            if (m.status === "recognizing text") {
+              textoOCR.value = "Reconhecendo texto: " + Math.round(m.progress * 100) + "%";
+            }
+          }
+        }
+      );
+
+      textoOCR.value = resultado.data.text;
+    }
+
+    function corrigirProva() {
+      const texto = normalizar(document.getElementById("textoOCR").value);
+      const linhas = texto.split(/\n|(?=\d+\s)/).map(l => normalizar(l)).filter(Boolean);
+
+      let acertos = 0;
+      let html = "";
+
+      for (let i = 0; i < gabarito.length; i++) {
+        const respostaCerta = gabarito[i];
+        const numero = i + 1;
+
+        const encontrou = linhas.some(linha => {
+          const limpa = linha.replace(new RegExp("^" + numero + "\\s*"), "").trim();
+          return limpa.includes(respostaCerta) || respostaCerta.includes(limpa);
+        });
+
+        if (encontrou) {
+          acertos++;
+          html += `<p><span class="certo">✔ ${numero}</span> — correto: ${respostaCerta}</p>`;
+        } else {
+          html += `<p><span class="errado">✘ ${numero}</span> — esperado: ${respostaCerta}</p>`;
+        }
+      }
+
+      const nota = (acertos / gabarito.length) * 10;
+
+      document.getElementById("resultado").innerHTML = `
+        <p class="nota">Nota: ${nota.toFixed(1)} / 10</p>
+        <p><strong>Acertos:</strong> ${acertos} de ${gabarito.length}</p>
+        ${html}
+      `;
+    }
+
+    function mostrarGabarito() {
+      const senha = document.getElementById("senha").value;
+
+      if (senha !== "2026") {
+        alert("Senha incorreta.");
+        return;
+      }
+
+      let html = "<h3>Gabarito protegido</h3><ol>";
+
+      gabarito.forEach(item => {
+        html += `<li>${item}</li>`;
+      });
+
+      html += "</ol>";
+
+      const div = document.getElementById("gabarito");
+      div.innerHTML = html;
+      div.classList.remove("oculto");
+    }
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
+</body>
+</html>
