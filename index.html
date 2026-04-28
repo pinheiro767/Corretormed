@@ -8,16 +8,16 @@
 
 <style>
 body{
-  font-family:Arial,sans-serif;
+  font-family:Arial, sans-serif;
   background:#eef2f7;
   margin:0;
   padding:20px;
 }
 
 .app{
-  max-width:1100px;
+  max-width:950px;
   margin:auto;
-  background:white;
+  background:#fff;
   padding:22px;
   border-radius:16px;
   box-shadow:0 4px 14px rgba(0,0,0,.15);
@@ -43,7 +43,6 @@ input{
   border-radius:8px;
   border:1px solid #aaa;
   font-size:16px;
-  box-sizing:border-box;
 }
 
 button{
@@ -53,41 +52,10 @@ button{
   border:none;
   border-radius:10px;
   background:#263238;
-  color:white;
+  color:#fff;
   font-size:16px;
   font-weight:bold;
   cursor:pointer;
-}
-
-.btn-claro{background:#607d8b;}
-.btn-verde{background:#2e7d32;}
-.btn-azul{background:#1565c0;}
-.btn-vermelho{background:#c62828;}
-
-.linha-botoes{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:10px;
-  margin-top:10px;
-}
-
-.calculadora,.novo-aluno{
-  margin-top:20px;
-  padding:15px;
-  border-radius:12px;
-  background:#f1f8ff;
-  display:none;
-}
-
-.resultado-calc{
-  margin-top:12px;
-  padding:12px;
-  background:white;
-  border-radius:10px;
-  font-size:18px;
-  font-weight:bold;
-  text-align:center;
-  border:1px solid #b0bec5;
 }
 
 table{
@@ -104,23 +72,19 @@ th,td{
 
 th{
   background:#263238;
-  color:white;
+  color:#fff;
 }
 
 tr:nth-child(even){background:#f5f5f5;}
 
-td input{
-  margin:0;
-  padding:6px;
-  font-size:14px;
+.ok{
+  color:green;
+  font-weight:bold;
 }
 
-.input-nome{
-  min-width:230px;
-}
-
-.input-acertos{
-  width:80px;
+.baixo{
+  color:#c62828;
+  font-weight:bold;
 }
 
 .resumo{
@@ -130,13 +94,42 @@ td input{
   border-radius:10px;
 }
 
+.gabarito{
+  margin-top:25px;
+  padding:18px;
+  background:#fff8e1;
+  border:1px solid #d6b656;
+  border-radius:12px;
+}
+
+.gabarito h2{
+  margin-bottom:15px;
+}
+
+.gabarito ol{
+  columns:2;
+  line-height:1.8;
+  font-size:15px;
+}
+
 @media print{
-  button,input,label,.calculadora,.novo-aluno,.acoes{
+  button,input,label{
     display:none;
   }
 
-  body{background:white;}
-  .app{box-shadow:none;}
+  body{
+    background:#fff;
+    padding:0;
+  }
+
+  .app{
+    box-shadow:none;
+    max-width:100%;
+  }
+
+  .gabarito{
+    page-break-before:always;
+  }
 }
 </style>
 </head>
@@ -149,49 +142,17 @@ td input{
 <h2>DCM — Anatomia Humana</h2>
 <h2>Conversor de Acertos em Nota</h2>
 
-<label>Valor total da atividade</label>
+<label>Valor total desta etapa</label>
 <input type="number" id="notaMaxima" value="0.4" step="0.01" oninput="calcular()">
 
 <label>Total de questões</label>
 <input type="number" id="totalQuestoes" value="20" oninput="calcular()">
 
-<div class="linha-botoes">
-  <button onclick="calcular()">Atualizar Notas</button>
-  <button class="btn-claro" onclick="abrirCalculadora()">Calculadora</button>
-  <button class="btn-verde" onclick="abrirNovoAluno()">Adicionar Aluno</button>
-  <button class="btn-azul" onclick="exportarExcel()">Gerar Planilha Excel</button>
-  <button class="btn-azul" onclick="baixarApp()">Baixar App</button>
-  <button onclick="window.print()">Imprimir / PDF</button>
-</div>
+<label>Nota mínima satisfatória</label>
+<input type="number" id="notaMinima" value="0.24" step="0.01" oninput="calcular()">
 
-<div class="calculadora" id="calculadora">
-  <h2>Calculadora Individual</h2>
-
-  <label>Acertos</label>
-  <input type="number" id="acertosIndividual" value="20" oninput="calcularIndividual()">
-
-  <label>Total de questões</label>
-  <input type="number" id="questoesIndividual" value="20" oninput="calcularIndividual()">
-
-  <label>Valor total da atividade</label>
-  <input type="number" id="valorIndividual" value="0.4" step="0.01" oninput="calcularIndividual()">
-
-  <div class="resultado-calc" id="resultadoIndividual">
-    Resultado: —
-  </div>
-</div>
-
-<div class="novo-aluno" id="novoAluno">
-  <h2>Adicionar Aluno</h2>
-
-  <label>Nome do aluno</label>
-  <input type="text" id="nomeNovo" placeholder="Digite o nome">
-
-  <label>Acertos</label>
-  <input type="number" id="acertosNovo" value="0">
-
-  <button class="btn-verde" onclick="adicionarAluno()">Adicionar</button>
-</div>
+<button onclick="calcular()">Converter Notas</button>
+<button onclick="window.print()">Imprimir Notas + Gabarito / Salvar PDF</button>
 
 <table>
 <thead>
@@ -200,21 +161,45 @@ td input{
 <th>Acadêmico(a)</th>
 <th>Acertos</th>
 <th>Nota</th>
-<th class="acoes">Ações</th>
+<th>Situação</th>
 </tr>
 </thead>
-
 <tbody id="tabela"></tbody>
 </table>
 
 <div class="resumo" id="resumo"></div>
 
+<div class="gabarito">
+<h2>Simulado 1 — Gabarito</h2>
+
+<ol>
+<li>Semiespinal</li>
+<li>Levantador das costelas</li>
+<li>Intersecções tendíneas</li>
+<li>Linha alba</li>
+<li>Ligamento amarelo</li>
+<li>Ligamento longitudinal anterior</li>
+<li>Adutor curto</li>
+<li>Músculo coracobraquial</li>
+<li>Músculo romboide maior</li>
+<li>Músculo trapézio — porção ascendente</li>
+<li>Articulação acrômio-clavicular</li>
+<li>Ligamento transverso do úmero</li>
+<li>Músculo tríceps braquial</li>
+<li>Cabeça curta do bíceps braquial</li>
+<li>Ligamento conoide</li>
+<li>Ligamento transverso do joelho</li>
+<li>Músculo flexor radial do carpo</li>
+<li>Músculo flexor curto do dedo mínimo</li>
+<li>Músculo latíssimo do dorso</li>
+<li>Músculo serrátil posterior inferior</li>
+</ol>
+</div>
+
 </div>
 
 <script>
-let deferredPrompt = null;
-
-let alunos = JSON.parse(localStorage.getItem("alunosNotasAnatomia")) || [
+const alunos = [
 {n:1,nome:"Gabriela Favaram Tronco",acertos:19},
 {n:2,nome:"Laura Aboni",acertos:14},
 {n:3,nome:"Ana Júlia R. Paulista",acertos:12},
@@ -225,7 +210,7 @@ let alunos = JSON.parse(localStorage.getItem("alunosNotasAnatomia")) || [
 {n:8,nome:"Ezequiel Santos",acertos:3},
 {n:9,nome:"Enzo",acertos:6},
 {n:10,nome:"Wallace Gabriel",acertos:9},
-{n:11,nome:"Mariana",acertos:6},
+{n:11,nome:"Muriana",acertos:6},
 {n:12,nome:"Heitor F. M. Barrigo Junior",acertos:19},
 {n:13,nome:"Victor H. Figueiredo",acertos:11},
 {n:14,nome:"Armando Nogello Junior",acertos:12},
@@ -239,23 +224,14 @@ let alunos = JSON.parse(localStorage.getItem("alunosNotasAnatomia")) || [
 {n:22,nome:"Guilherme Henrique",acertos:16}
 ];
 
-function salvar(){
-  localStorage.setItem("alunosNotasAnatomia", JSON.stringify(alunos));
-}
-
-function formatar(valor){
+function moeda(valor){
   return valor.toFixed(3).replace(".", ",");
-}
-
-function calcularNota(acertos){
-  const notaMaxima = Number(document.getElementById("notaMaxima").value);
-  const totalQuestoes = Number(document.getElementById("totalQuestoes").value);
-  return (Number(acertos) / totalQuestoes) * notaMaxima;
 }
 
 function calcular(){
   const notaMaxima = Number(document.getElementById("notaMaxima").value);
   const totalQuestoes = Number(document.getElementById("totalQuestoes").value);
+  const notaMinima = Number(document.getElementById("notaMinima").value);
 
   const tabela = document.getElementById("tabela");
   tabela.innerHTML = "";
@@ -264,181 +240,43 @@ function calcular(){
   let maior = 0;
   let menor = Infinity;
 
-  alunos.forEach((aluno, index)=>{
-    aluno.n = index + 1;
-
-    const nota = calcularNota(aluno.acertos);
+  alunos.forEach(aluno=>{
+    const nota = (aluno.acertos / totalQuestoes) * notaMaxima;
 
     soma += nota;
     maior = Math.max(maior, nota);
     menor = Math.min(menor, nota);
 
+    const situacao = nota >= notaMinima ? "Satisfatório" : "Atenção";
+    const classe = nota >= notaMinima ? "ok" : "baixo";
+
     tabela.innerHTML += `
       <tr>
         <td>${aluno.n}</td>
-
-        <td>
-          <input class="input-nome" value="${aluno.nome}"
-          oninput="alterarNome(${index}, this.value)">
-        </td>
-
-        <td>
-          <input class="input-acertos" type="number" value="${aluno.acertos}"
-          oninput="alterarAcertos(${index}, this.value)">
-        </td>
-
-        <td id="nota-${index}">${formatar(nota)}</td>
-
-        <td class="acoes">
-          <button class="btn-vermelho" onclick="removerAluno(${index})">Excluir</button>
-        </td>
+        <td style="text-align:left">${aluno.nome}</td>
+        <td>${aluno.acertos}/${totalQuestoes}</td>
+        <td>${moeda(nota)}</td>
+        <td class="${classe}">${situacao}</td>
       </tr>
     `;
   });
 
-  const media = alunos.length ? soma / alunos.length : 0;
+  const media = soma / alunos.length;
 
   document.getElementById("resumo").innerHTML = `
     <strong>Total de alunos:</strong> ${alunos.length}<br>
-    <strong>Regra:</strong> ${totalQuestoes} acertos = ${formatar(notaMaxima)} ponto(s)<br>
-    <strong>Média da turma:</strong> ${formatar(media)}<br>
-    <strong>Maior nota:</strong> ${formatar(maior === -Infinity ? 0 : maior)}<br>
-    <strong>Menor nota:</strong> ${formatar(menor === Infinity ? 0 : menor)}
+    <strong>Regra:</strong> ${totalQuestoes} acertos = ${moeda(notaMaxima)} ponto(s)<br>
+    <strong>Média da turma:</strong> ${moeda(media)}<br>
+    <strong>Maior nota:</strong> ${moeda(maior)}<br>
+    <strong>Menor nota:</strong> ${moeda(menor)}
   `;
-
-  salvar();
 }
-
-function alterarNome(index, valor){
-  alunos[index].nome = valor;
-  salvar();
-}
-
-function alterarAcertos(index, valor){
-  alunos[index].acertos = Number(valor);
-  document.getElementById(`nota-${index}`).innerText = formatar(calcularNota(valor));
-  calcular();
-}
-
-function abrirCalculadora(){
-  const calc = document.getElementById("calculadora");
-  calc.style.display = calc.style.display === "none" || calc.style.display === "" ? "block" : "none";
-  calcularIndividual();
-}
-
-function calcularIndividual(){
-  const acertos = Number(document.getElementById("acertosIndividual").value);
-  const total = Number(document.getElementById("questoesIndividual").value);
-  const valor = Number(document.getElementById("valorIndividual").value);
-
-  const nota = (acertos / total) * valor;
-
-  document.getElementById("resultadoIndividual").innerHTML =
-    `${acertos} acertos em ${total} questões = ${formatar(nota)} ponto(s)`;
-}
-
-function abrirNovoAluno(){
-  const box = document.getElementById("novoAluno");
-  box.style.display = box.style.display === "none" || box.style.display === "" ? "block" : "none";
-}
-
-function adicionarAluno(){
-  const nome = document.getElementById("nomeNovo").value.trim();
-  const acertos = Number(document.getElementById("acertosNovo").value);
-
-  if(!nome){
-    alert("Digite o nome do aluno.");
-    return;
-  }
-
-  alunos.push({
-    n: alunos.length + 1,
-    nome: nome,
-    acertos: acertos
-  });
-
-  document.getElementById("nomeNovo").value = "";
-  document.getElementById("acertosNovo").value = 0;
-
-  calcular();
-}
-
-function removerAluno(index){
-  if(confirm("Deseja excluir este aluno?")){
-    alunos.splice(index,1);
-    calcular();
-  }
-}
-
-function exportarExcel(){
-  const notaMaxima = Number(document.getElementById("notaMaxima").value);
-  const totalQuestoes = Number(document.getElementById("totalQuestoes").value);
-
-  let html = `
-  <html>
-  <head>
-  <meta charset="UTF-8">
-  </head>
-  <body>
-  <table border="1">
-  <tr>
-    <th>Nº</th>
-    <th>Acadêmico(a)</th>
-    <th>Acertos</th>
-    <th>Total de Questões</th>
-    <th>Nota</th>
-  </tr>
-  `;
-
-  alunos.forEach((aluno,index)=>{
-    const nota = (aluno.acertos / totalQuestoes) * notaMaxima;
-
-    html += `
-    <tr>
-      <td>${index + 1}</td>
-      <td>${aluno.nome}</td>
-      <td>${aluno.acertos}</td>
-      <td>${totalQuestoes}</td>
-      <td>${formatar(nota)}</td>
-    </tr>
-    `;
-  });
-
-  html += `
-  </table>
-  </body>
-  </html>
-  `;
-
-  const blob = new Blob([html], {type:"application/vnd.ms-excel"});
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "notas_anatomia.xls";
-  link.click();
-}
-
-function baixarApp(){
-  if(deferredPrompt){
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(()=>{
-      deferredPrompt = null;
-    });
-  }else{
-    alert("Para baixar como app: no navegador, toque nos três pontinhos e escolha 'Adicionar à tela inicial' ou 'Instalar app'.");
-  }
-}
-
-window.addEventListener("beforeinstallprompt", (e)=>{
-  e.preventDefault();
-  deferredPrompt = e;
-});
 
 if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js");
+ navigator.serviceWorker.register("sw.js");
 }
 
 calcular();
-calcularIndividual();
 </script>
 
 </body>
