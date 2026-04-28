@@ -1,0 +1,9 @@
+{
+  "name": "Corretor OCR Anatomia",
+  "short_name": "Corretor OCR",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#eef2f7",
+  "theme_color": "#1f4e79",
+  "icons": []
+}
