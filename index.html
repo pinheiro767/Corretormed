@@ -1,224 +1,241 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Conversor de Acertos em Nota</title>
-  <link rel="manifest" href="manifest.json">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #eef2f7;
-      margin: 0;
-      padding: 20px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conversor de Acertos em Nota</title>
+<link rel="manifest" href="manifest.json">
 
-    .app {
-      max-width: 900px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 14px rgba(0,0,0,.15);
-    }
+<style>
+body{
+  font-family:Arial, sans-serif;
+  background:#eef2f7;
+  margin:0;
+  padding:20px;
+}
 
-    h1, h2 {
-      text-align: center;
-      margin: 5px;
-    }
+.app{
+  max-width:950px;
+  margin:auto;
+  background:#fff;
+  padding:22px;
+  border-radius:16px;
+  box-shadow:0 4px 14px rgba(0,0,0,.15);
+}
 
-    h1 {
-      color: #263238;
-    }
+h1,h2{
+  text-align:center;
+  margin:5px;
+}
 
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 12px;
-    }
+h1{
+  color:#263238;
+}
 
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 8px;
-      border: 1px solid #aaa;
-      font-size: 16px;
-    }
+label{
+  font-weight:bold;
+  display:block;
+  margin-top:12px;
+}
 
-    button {
-      margin-top: 15px;
-      padding: 12px;
-      width: 100%;
-      border: none;
-      border-radius: 10px;
-      background: #263238;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-    }
+input{
+  width:100%;
+  padding:10px;
+  margin-top:5px;
+  border-radius:8px;
+  border:1px solid #aaa;
+  font-size:16px;
+}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 25px;
-    }
+button{
+  margin-top:12px;
+  padding:12px;
+  width:100%;
+  border:none;
+  border-radius:10px;
+  background:#263238;
+  color:#fff;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+}
 
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-    }
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:25px;
+}
 
-    th {
-      background: #263238;
-      color: white;
-    }
+th,td{
+  border:1px solid #ccc;
+  padding:8px;
+  text-align:center;
+}
 
-    tr:nth-child(even) {
-      background: #f5f5f5;
-    }
+th{
+  background:#263238;
+  color:#fff;
+}
 
-    .ok {
-      color: green;
-      font-weight: bold;
-    }
+tr:nth-child(even){
+  background:#f5f5f5;
+}
 
-    .baixo {
-      color: #c62828;
-      font-weight: bold;
-    }
+.ok{
+  color:green;
+  font-weight:bold;
+}
 
-    .resumo {
-      margin-top: 20px;
-      background: #e3f2fd;
-      padding: 12px;
-      border-radius: 10px;
-    }
+.baixo{
+  color:#c62828;
+  font-weight:bold;
+}
 
-    @media print {
-      button, input, label {
-        display: none;
-      }
+.resumo{
+  margin-top:20px;
+  background:#e3f2fd;
+  padding:12px;
+  border-radius:10px;
+}
 
-      body {
-        background: white;
-      }
+@media print{
+  button,input,label{
+    display:none;
+  }
 
-      .app {
-        box-shadow: none;
-      }
-    }
-  </style>
+  body{
+    background:#fff;
+  }
+
+  .app{
+    box-shadow:none;
+  }
+}
+</style>
 </head>
+
 <body>
 
 <div class="app">
-  <h1>Universidade Estadual de Maringá</h1>
-  <h2>DCM — Anatomia Humana</h2>
-  <h2>Conversor de Acertos em Nota</h2>
 
-  <label>Valor máximo da prova em pontos</label>
-  <input type="number" id="notaMaxima" value="10" step="0.1">
+<h1>Universidade Estadual de Maringá</h1>
+<h2>DCM — Anatomia Humana</h2>
+<h2>Conversor de Acertos em Nota</h2>
 
-  <label>Total de questões / acertos possíveis</label>
-  <input type="number" id="totalQuestoes" value="20">
+<label>Valor total desta etapa (ex: 0.4)</label>
+<input type="number" id="notaMaxima" value="0.4" step="0.01">
 
-  <label>Nota mínima satisfatória</label>
-  <input type="number" id="notaMinima" value="6" step="0.1">
+<label>Total de questões</label>
+<input type="number" id="totalQuestoes" value="20">
 
-  <button onclick="calcular()">Converter Notas</button>
-  <button onclick="window.print()">Imprimir / Salvar PDF</button>
+<label>Nota mínima satisfatória</label>
+<input type="number" id="notaMinima" value="0.24" step="0.01">
 
-  <table>
-    <thead>
-      <tr>
-        <th>Nº</th>
-        <th>Acadêmico(a)</th>
-        <th>Acertos</th>
-        <th>Nota Convertida</th>
-        <th>Situação</th>
-      </tr>
-    </thead>
-    <tbody id="tabela"></tbody>
-  </table>
+<button onclick="calcular()">Converter Notas</button>
+<button onclick="window.print()">Imprimir / Salvar PDF</button>
 
-  <div class="resumo" id="resumo"></div>
+<table>
+<thead>
+<tr>
+<th>Nº</th>
+<th>Acadêmico(a)</th>
+<th>Acertos</th>
+<th>Nota</th>
+<th>Situação</th>
+</tr>
+</thead>
+
+<tbody id="tabela"></tbody>
+</table>
+
+<div class="resumo" id="resumo"></div>
+
 </div>
 
 <script>
+
 const alunos = [
-  {n: 1, nome: "Gabriela Favaram Tronco", acertos: 19},
-  {n: 2, nome: "Laura Aboni", acertos: 14},
-  {n: 3, nome: "Ana Júlia R. Paulista", acertos: 12},
-  {n: 4, nome: "Isabelle Justina", acertos: 10},
-  {n: 5, nome: "Ana Campanin", acertos: 15},
-  {n: 6, nome: "Camila Aparecida Neves Santos", acertos: 15},
-  {n: 7, nome: "Mateus de Brito Oliveira", acertos: 12},
-  {n: 8, nome: "Ezequiel Santos", acertos: 3},
-  {n: 9, nome: "Enzo", acertos: 6},
-  {n: 10, nome: "Wallace Gabriel", acertos: 9},
-  {n: 11, nome: "Mariana", acertos: 6},
-  {n: 12, nome: "Heitor F. M. Barrigo Junior", acertos: 19},
-  {n: 13, nome: "Victor H. Figueiredo", acertos: 11},
-  {n: 14, nome: "Armando Nogello Junior", acertos: 12},
-  {n: 15, nome: "Filipa Ribeiro Palhono", acertos: 8},
-  {n: 16, nome: "João Gabriel Corrêa", acertos: 16},
-  {n: 17, nome: "Nicole Budiz", acertos: 11},
-  {n: 18, nome: "Lisa Aimi", acertos: 10},
-  {n: 19, nome: "Evelyn Giovanna V. Fariña", acertos: 15},
-  {n: 20, nome: "Kauã Barros", acertos: 15},
-  {n: 21, nome: "Marta S. Dick", acertos: 18}
+{n:1,nome:"Gabriela Favaram Tronco",acertos:19},
+{n:2,nome:"Laura Aboni",acertos:14},
+{n:3,nome:"Ana Júlia R. Paulista",acertos:12},
+{n:4,nome:"Isabelle Justina",acertos:10},
+{n:5,nome:"Ana Campanin",acertos:15},
+{n:6,nome:"Camila Aparecida Neves Santos",acertos:15},
+{n:7,nome:"Mateus de Brito Oliveira",acertos:12},
+{n:8,nome:"Ezequiel Santos",acertos:3},
+{n:9,nome:"Enzo",acertos:6},
+{n:10,nome:"Wallace Gabriel",acertos:9},
+{n:11,nome:"Muriana",acertos:6},
+{n:12,nome:"Heitor F. M. Barrigo Junior",acertos:19},
+{n:13,nome:"Victor H. Figueiredo",acertos:11},
+{n:14,nome:"Armando Nogello Junior",acertos:12},
+{n:15,nome:"Filipa Ribeiro Palhono",acertos:8},
+{n:16,nome:"João Gabriel Corrêa",acertos:16},
+{n:17,nome:"Nicole Budiz",acertos:11},
+{n:18,nome:"Lisa Aimi",acertos:10},
+{n:19,nome:"Evelyn Giovanna V. Fariña",acertos:15},
+{n:20,nome:"Kauã Barros",acertos:15},
+{n:21,nome:"Marta S. Dick",acertos:18}
 ];
 
-function calcular() {
-  const notaMaxima = Number(document.getElementById("notaMaxima").value);
-  const totalQuestoes = Number(document.getElementById("totalQuestoes").value);
-  const notaMinima = Number(document.getElementById("notaMinima").value);
+function calcular(){
 
-  const tabela = document.getElementById("tabela");
-  tabela.innerHTML = "";
+const notaMaxima = Number(document.getElementById("notaMaxima").value);
+const totalQuestoes = Number(document.getElementById("totalQuestoes").value);
+const notaMinima = Number(document.getElementById("notaMinima").value);
 
-  let soma = 0;
-  let maior = 0;
-  let menor = notaMaxima;
+const tabela = document.getElementById("tabela");
+tabela.innerHTML = "";
 
-  alunos.forEach(aluno => {
-    const nota = (aluno.acertos / totalQuestoes) * notaMaxima;
-    soma += nota;
-    maior = Math.max(maior, nota);
-    menor = Math.min(menor, nota);
+let soma = 0;
+let maior = 0;
+let menor = notaMaxima;
 
-    const situacao = nota >= notaMinima ? "Satisfatório" : "Atenção";
-    const classe = nota >= notaMinima ? "ok" : "baixo";
+alunos.forEach(aluno=>{
 
-    tabela.innerHTML += `
-      <tr>
-        <td>${aluno.n}</td>
-        <td style="text-align:left">${aluno.nome}</td>
-        <td>${aluno.acertos}/${totalQuestoes}</td>
-        <td>${nota.toFixed(2)}</td>
-        <td class="${classe}">${situacao}</td>
-      </tr>
-    `;
-  });
+// REGRA CORRETA:
+// 20 acertos = 0,4
+// menos acertos calcula proporcionalmente
 
-  const media = soma / alunos.length;
+const nota = (aluno.acertos / totalQuestoes) * notaMaxima;
 
-  document.getElementById("resumo").innerHTML = `
-    <strong>Total de alunos:</strong> ${alunos.length}<br>
-    <strong>Nota máxima escolhida:</strong> ${notaMaxima}<br>
-    <strong>Média da turma:</strong> ${media.toFixed(2)}<br>
-    <strong>Maior nota:</strong> ${maior.toFixed(2)}<br>
-    <strong>Menor nota:</strong> ${menor.toFixed(2)}
-  `;
+soma += nota;
+maior = Math.max(maior, nota);
+menor = Math.min(menor, nota);
+
+const situacao = nota >= notaMinima ? "Satisfatório" : "Atenção";
+const classe = nota >= notaMinima ? "ok" : "baixo";
+
+tabela.innerHTML += `
+<tr>
+<td>${aluno.n}</td>
+<td style="text-align:left">${aluno.nome}</td>
+<td>${aluno.acertos}/${totalQuestoes}</td>
+<td>${nota.toFixed(2).replace(".",",")}</td>
+<td class="${classe}">${situacao}</td>
+</tr>
+`;
+
+});
+
+const media = soma / alunos.length;
+
+document.getElementById("resumo").innerHTML = `
+<strong>Total de alunos:</strong> ${alunos.length}<br>
+<strong>Valor total da etapa:</strong> ${notaMaxima.toFixed(2).replace(".",",")}<br>
+<strong>Média da turma:</strong> ${media.toFixed(2).replace(".",",")}<br>
+<strong>Maior nota:</strong> ${maior.toFixed(2).replace(".",",")}<br>
+<strong>Menor nota:</strong> ${menor.toFixed(2).replace(".",",")}
+`;
+
 }
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
+if("serviceWorker" in navigator){
+ navigator.serviceWorker.register("sw.js");
 }
 
 calcular();
+
 </script>
 
 </body>
