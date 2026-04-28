@@ -3,321 +3,167 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Corretor Inteligente UEM V2</title>
-<link rel="manifest" href="manifest.json">
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
+<title>Corretor UEM Manual + OCR</title>
 <style>
-body{
-  font-family:Arial,sans-serif;
-  background:#eef2f7;
-  margin:0;
-  padding:14px;
-}
-.app{
-  max-width:900px;
-  margin:auto;
-  background:white;
-  padding:18px;
-  border-radius:18px;
-  box-shadow:0 4px 20px #0002;
-}
+body{font-family:Arial;background:#eef2f7;margin:0;padding:14px}
+.app{max-width:900px;margin:auto;background:white;padding:18px;border-radius:18px}
 h1,h2{text-align:center;color:#17446b}
-button{
-  width:100%;
-  padding:14px;
-  margin-top:10px;
-  border:0;
-  border-radius:12px;
-  background:#17446b;
-  color:white;
-  font-weight:bold;
-  font-size:16px;
-}
-input,textarea{
-  width:100%;
-  box-sizing:border-box;
-  padding:12px;
-  margin-top:8px;
-  border-radius:10px;
-  border:1px solid #aaa;
-  font-size:16px;
-}
-textarea{height:220px}
-video,canvas{
-  width:100%;
-  margin-top:10px;
-  border-radius:14px;
-  border:2px solid #ddd;
-}
-.oculto{display:none}
-.card{
-  background:#f8fafc;
-  border:1px solid #ddd;
-  border-radius:12px;
-  padding:12px;
-  margin-top:12px;
-}
+input,button{width:100%;box-sizing:border-box;padding:13px;margin-top:8px;border-radius:10px;font-size:16px}
+input{border:1px solid #aaa}
+button{border:0;background:#17446b;color:white;font-weight:bold}
+.questao{background:#f8fafc;border:1px solid #ddd;border-radius:12px;padding:10px;margin-top:8px}
 .certo{color:green;font-weight:bold}
 .errado{color:red;font-weight:bold}
-.nota{
-  font-size:28px;
-  text-align:center;
-  color:#17446b;
-  font-weight:bold;
-}
-.pequeno{font-size:13px;color:#555}
+.nota{text-align:center;font-size:28px;color:#17446b;font-weight:bold}
 </style>
 </head>
-
 <body>
 <div class="app">
-  <h1>Corretor Inteligente UEM V2</h1>
-  <h2>Prova Prática — Anatomia Humana</h2>
+<h1>Corretor Inteligente UEM</h1>
+<h2>Simulado 1 — Anatomia</h2>
 
-  <input id="nomeAluno" placeholder="Nome do aluno">
+<input id="aluno" placeholder="Nome do aluno">
 
-  <button onclick="abrirCamera()">1. Abrir câmera</button>
-  <video id="video" autoplay playsinline></video>
+<div id="campos"></div>
 
-  <button onclick="capturar()">2. Fotografar prova</button>
-  <canvas id="canvas" class="oculto"></canvas>
+<button onclick="corrigir()">Corrigir prova</button>
 
-  <button onclick="melhorarImagem()">3. Melhorar imagem tipo scanner</button>
+<div id="resultado"></div>
 
-  <button onclick="lerOCR()">4. Ler com OCR</button>
-
-  <h2>Texto reconhecido</h2>
-  <p class="pequeno">Confira o texto antes de corrigir. Se o OCR errar alguma palavra, você pode ajustar manualmente.</p>
-  <textarea id="texto"></textarea>
-
-  <button onclick="corrigir()">5. Corrigir prova</button>
-
-  <div id="resultado" class="card"></div>
-
-  <h2>Área da professora</h2>
-  <input type="password" id="senha" placeholder="Senha do gabarito">
-  <button onclick="mostrarGabarito()">Mostrar gabarito</button>
-  <div id="gabaritoBox" class="card oculto"></div>
+<h2>Área da professora</h2>
+<input type="password" id="senha" placeholder="Senha">
+<button onclick="mostrarGabarito()">Mostrar gabarito</button>
+<div id="gabarito"></div>
 </div>
 
 <script>
-const gabarito = [
-  "semiespinal",
-  "levantador das costelas",
-  "interseccoes tendineas",
-  "linha alba",
-  "ligamento amarelo",
-  "ligamento longitudinal anterior",
-  "adutor curto",
-  "musculo coracobraquial",
-  "musculo romboide maior",
-  "musculo trapezio porcao ascendente",
-  "articulacao acromio clavicular",
-  "ligamento transverso do umero",
-  "musculo piriforme",
-  "cabeca curta do biceps braquial",
-  "ligamento conoide",
-  "ligamento transverso do joelho",
-  "musculo flexor radial do carpo",
-  "musculo flexor curto do dedo minimo",
-  "musculo latissimo do dorso",
-  "musculo serratil posterior inferior"
+const gabarito=[
+"semiespinal",
+"levantador das costelas",
+"interseccoes tendineas",
+"linha alba",
+"ligamento amarelo",
+"ligamento longitudinal anterior",
+"adutor curto",
+"musculo coracobraquial",
+"musculo romboide maior",
+"musculo trapezio porcao ascendente",
+"articulacao acromio clavicular",
+"ligamento transverso do umero",
+"musculo piriforme",
+"cabeca curta do biceps braquial",
+"ligamento conoide",
+"ligamento transverso do joelho",
+"musculo flexor radial do carpo",
+"musculo flexor curto do dedo minimo",
+"musculo latissimo do dorso",
+"musculo serratil posterior inferior"
 ];
 
-const sinonimos = {
-  "lig": "ligamento",
-  "lig.": "ligamento",
-  "m": "musculo",
-  "m.": "musculo",
-  "mm": "musculo",
-  "art": "articulacao",
-  "art.": "articulacao",
-  "ant": "anterior",
-  "ant.": "anterior",
-  "post": "posterior",
-  "post.": "posterior",
-  "acromio clavicular": "acromio clavicular",
-  "acromioclavicular": "acromio clavicular",
-  "conóide": "conoide",
-  "trapezio ascendente": "trapezio porcao ascendente",
-  "porcao ascendente": "porcao ascendente",
-  "romboide maior": "romboide maior",
-  "biceps": "biceps",
-  "latissimo": "latissimo"
+const sinonimos={
+"lig":"ligamento",
+"lig.":"ligamento",
+"m":"musculo",
+"m.":"musculo",
+"art":"articulacao",
+"art.":"articulacao",
+"ant":"anterior",
+"ant.":"anterior",
+"long ant":"longitudinal anterior",
+"transv":"transverso",
+"umero":"umero",
+"joelho":"joelho",
+"trapezio ascendente":"trapezio porcao ascendente",
+"acromio clavicular":"acromio clavicular",
+"acromioclavicular":"acromio clavicular",
+"conoide":"conoide",
+"conóide":"conoide",
+"biceps":"biceps",
+"bíceps":"biceps"
 };
 
-function normalizar(txt){
-  txt = txt.toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g,"")
-    .replace(/[.,;:()_\-]/g," ")
-    .replace(/\s+/g," ")
-    .trim();
+function normalizar(t){
+  t=t.toLowerCase()
+  .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+  .replace(/[.,;:()_\-]/g," ")
+  .replace(/\s+/g," ")
+  .trim();
 
-  for(const chave in sinonimos){
-    const re = new RegExp("\\b" + chave.replace(".","\\.") + "\\b","g");
-    txt = txt.replace(re, sinonimos[chave]);
+  for(const k in sinonimos){
+    t=t.replace(new RegExp("\\b"+k.replace(".","\\.")+"\\b","g"),sinonimos[k]);
   }
-
-  return txt.replace(/\s+/g," ").trim();
+  return t;
 }
 
-function similaridade(a,b){
-  a = normalizar(a);
-  b = normalizar(b);
+function similaridade(resp,certa){
+  resp=normalizar(resp);
+  certa=normalizar(certa);
 
-  if(a.includes(b) || b.includes(a)) return 1;
+  if(resp.includes(certa) || certa.includes(resp)) return 1;
 
-  const palavrasA = a.split(" ");
-  const palavrasB = b.split(" ");
+  const pr=resp.split(" ");
+  const pc=certa.split(" ");
+  let comuns=0;
 
-  let comuns = 0;
-  palavrasB.forEach(p=>{
-    if(palavrasA.includes(p)) comuns++;
+  pc.forEach(p=>{
+    if(pr.includes(p)) comuns++;
   });
 
-  return comuns / palavrasB.length;
+  return comuns/pc.length;
 }
 
-async function abrirCamera(){
-  const video = document.getElementById("video");
-  try{
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:"environment"},
-      audio:false
-    });
-    video.srcObject = stream;
-  }catch(e){
-    alert("Não consegui abrir a câmera. Use HTTPS ou GitHub Pages.");
+function criarCampos(){
+  let html="";
+  for(let i=1;i<=20;i++){
+    html+=`
+    <div class="questao">
+      <strong>${i}.</strong>
+      <input id="q${i}" placeholder="Resposta do aluno ${i}">
+    </div>`;
   }
-}
-
-function capturar(){
-  const video = document.getElementById("video");
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
-
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-
-  ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  canvas.classList.remove("oculto");
-}
-
-function melhorarImagem(){
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
-  const img = ctx.getImageData(0,0,canvas.width,canvas.height);
-  const d = img.data;
-
-  for(let i=0;i<d.length;i+=4){
-    let cinza = 0.3*d[i] + 0.59*d[i+1] + 0.11*d[i+2];
-    cinza = cinza > 150 ? 255 : 0;
-    d[i]=d[i+1]=d[i+2]=cinza;
-  }
-
-  ctx.putImageData(img,0,0);
-  alert("Imagem melhorada para OCR.");
-}
-
-async function lerOCR(){
-  const canvas = document.getElementById("canvas");
-  const texto = document.getElementById("texto");
-
-  if(canvas.width === 0){
-    alert("Fotografe a prova primeiro.");
-    return;
-  }
-
-  texto.value = "Lendo prova manuscrita... aguarde.";
-
-  const resultado = await Tesseract.recognize(canvas, "por", {
-    logger:m=>{
-      if(m.status === "recognizing text"){
-        texto.value = "Reconhecendo: " + Math.round(m.progress*100) + "%";
-      }
-    }
-  });
-
-  texto.value = resultado.data.text;
-}
-
-function extrairRespostas(texto){
-  texto = texto.replace(/\r/g,"\n");
-  const linhas = texto.split("\n").map(l=>normalizar(l)).filter(Boolean);
-
-  let respostas = Array(20).fill("");
-
-  linhas.forEach(linha=>{
-    const match = linha.match(/^(\d{1,2})\s+(.*)/);
-    if(match){
-      const n = parseInt(match[1]);
-      if(n >= 1 && n <= 20){
-        respostas[n-1] = match[2];
-      }
-    }
-  });
-
-  if(respostas.every(r=>r==="")){
-    const tudo = normalizar(texto);
-    for(let i=1;i<=20;i++){
-      const re = new RegExp("\\b" + i + "\\b\\s*(.*?)(?=\\b" + (i+1) + "\\b|$)");
-      const m = tudo.match(re);
-      if(m) respostas[i-1] = m[1].trim();
-    }
-  }
-
-  return respostas;
+  document.getElementById("campos").innerHTML=html;
 }
 
 function corrigir(){
-  const nome = document.getElementById("nomeAluno").value || "Aluno";
-  const texto = document.getElementById("texto").value;
-  const respostas = extrairRespostas(texto);
+  let acertos=0;
+  let html="";
+  const aluno=document.getElementById("aluno").value || "Aluno";
 
-  let acertos = 0;
-  let html = `<h2>Resultado — ${nome}</h2>`;
+  for(let i=1;i<=20;i++){
+    const resp=document.getElementById("q"+i).value;
+    const certa=gabarito[i-1];
+    const score=similaridade(resp,certa);
 
-  for(let i=0;i<20;i++){
-    const resp = respostas[i] || "";
-    const certa = gabarito[i];
-    const score = similaridade(resp,certa);
-
-    if(score >= 0.55){
+    if(score>=0.55){
       acertos++;
-      html += `<p><span class="certo">✔ ${i+1}</span> — ${resp || "(não lido)"} <br><small>Esperado: ${certa}</small></p>`;
+      html+=`<p><span class="certo">✔ ${i}</span> ${resp}<br><small>Esperado: ${certa}</small></p>`;
     }else{
-      html += `<p><span class="errado">✘ ${i+1}</span> — ${resp || "(não lido)"} <br><small>Esperado: ${certa}</small></p>`;
+      html+=`<p><span class="errado">✘ ${i}</span> ${resp || "(em branco)"}<br><small>Esperado: ${certa}</small></p>`;
     }
   }
 
-  const nota = (acertos/20)*10;
+  const nota=(acertos/20)*10;
 
-  document.getElementById("resultado").innerHTML =
-    `<p class="nota">Nota: ${nota.toFixed(1)} / 10</p>
-     <p><strong>Acertos:</strong> ${acertos} de 20</p>` + html;
+  document.getElementById("resultado").innerHTML=
+  `<h2>Resultado — ${aluno}</h2>
+   <p class="nota">Nota: ${nota.toFixed(1)} / 10</p>
+   <p><strong>Acertos:</strong> ${acertos} de 20</p>
+   ${html}`;
 }
 
 function mostrarGabarito(){
-  const senha = document.getElementById("senha").value;
-  if(senha !== "2026"){
-    alert("Senha incorreta.");
+  if(document.getElementById("senha").value!=="2026"){
+    alert("Senha incorreta");
     return;
   }
 
-  let html = "<h3>Gabarito — Simulado 1</h3><ol>";
-  gabarito.forEach(g=> html += `<li>${g}</li>`);
-  html += "</ol>";
-
-  const box = document.getElementById("gabaritoBox");
-  box.innerHTML = html;
-  box.classList.remove("oculto");
+  let html="<h3>Gabarito</h3><ol>";
+  gabarito.forEach(g=>html+=`<li>${g}</li>`);
+  html+="</ol>";
+  document.getElementById("gabarito").innerHTML=html;
 }
 
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js");
-}
+criarCampos();
 </script>
 </body>
 </html>
